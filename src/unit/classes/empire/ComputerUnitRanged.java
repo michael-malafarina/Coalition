@@ -8,21 +8,24 @@ public class ComputerUnitRanged extends ComputerUnit
 	public void movement()
 	{
 		//System.out.println(this + " is moving");
-	//	kite();
+		kite();
 		
-
+//		else
+//		{
+//			endMove();
+//		}	
 	}
 	
 	public void action()
 	{
-//		if(hasEnemyInRange(getBasicAttack()))
-//		{
-//			basicAttackEnemyInRange();
-//		}
-//		else
-//		{
-//			endAction();
-//		}
+		if(hasEnemyInRange(getBasicAttack()))
+		{
+			basicAttackEnemyInRange();
+		}
+		else
+		{
+			endAction();
+		}
 
 	}
 }

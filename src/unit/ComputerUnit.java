@@ -61,13 +61,17 @@ public abstract class ComputerUnit extends Unit
 	private boolean isAdjacent(Cell target)		{	return Utility.getDistance(getCell(),  target) == 1;							}
 	
 	public int getValue()						{	return type.getValue();					}
-
+//	private boolean isAdjacentToEnemy()		
+//	{	
+//		if(hasUnitWest() && getUnitWest().isHostile(this)) return true;
+//		else if(hasUnitEast() && getUnitEast().isHostile(this)) return true;
+//		else if(hasUnitNorth() && getUnitNorth().isHostile(this)) return true;
+//		else if(hasUnitSouth() && getUnitSouth().isHostile(this)) return true;
+//		else return false;
+//		already wrote this duh
+//	}
 	
-	
-	public void calculateMoveWeights()	
-	{		
-		//Map.calculateDistances(this, true)		;	
-	}
+	public void calculateMoveWeights()	{		Map.calculateDistances(this, true);	}
 
 	public Unit findNearestEnemy()
 	{
@@ -79,10 +83,10 @@ public abstract class ComputerUnit extends Unit
 
 		for(Unit u : getEnemies())
 		{
-			//if(u.isAlive() && u.getCell().getWeight() < lowestWeight)
+			if(u.isAlive() && u.getCell().getWeight() < lowestWeight)
 			{
 				nearestEnemy = u;
-		//		lowestWeight = u.getCell().getWeight();
+				lowestWeight = u.getCell().getWeight();
 			}
 		}
 
@@ -96,18 +100,18 @@ public abstract class ComputerUnit extends Unit
 		
 		for(Unit u : getEnemies())
 		{
-			//Map.calculateDistances(u, true);
+			Map.calculateDistances(u, true);
 			
 	
 			for(Cell c : Map.getCells())
 			{
 				if(cellSafety.containsKey(c))
 				{
-				//	cellSafety.replace(c, cellSafety.get(c) + c.getWeight());
+					cellSafety.replace(c, cellSafety.get(c) + c.getWeight());
 				}
 				else
 				{
-					//cellSafety.put(c, c.getWeight());
+					cellSafety.put(c, c.getWeight());
 				}
 			}
 		}
@@ -140,16 +144,13 @@ public abstract class ComputerUnit extends Unit
 			Cell tempCell = cell;
 			cell = c;
 			
-		//	Map.calculateDistances(this, false);
-			
-			
+			Map.calculateDistances(this, false);
 		//	System.out.println(this + " nearest enemy's weight " + nearestEnemy.getCell().getWeight());
 
 			cell = tempCell;
 
 			// Can still target enemy with ability from here, may be a candidate
-			
-			//if(nearestEnemy.getCell().getWeight() <= a.getRange())
+			if(nearestEnemy.getCell().getWeight() <= a.getRange())
 			{
 			//	System.out.println(this + " enemy is in range of " + c);
 
@@ -213,7 +214,35 @@ public abstract class ComputerUnit extends Unit
 		
 		return moveCells;
 	}
-		
+	
+	
+//	public Cell getCellClosestTo(Cell target)
+//	{
+//		ArrayList<Cell> allCells = Map.getCells();
+//		ArrayList<Cell> moveCells = getMoveCells();
+//		
+//		//System.out.println(this + "has this many move cell options" + getMoveCells().size());
+//		
+//		Cell nearest = null;
+//		int lowestDistance = Integer.MAX_VALUE;
+//		
+//		for(Cell c : moveCells)
+//		{
+//			int dist = Map.getDistance(c, target, true);
+////			int dist = Utility.getDistance(c, target);
+//			if(dist < lowestDistance)
+//			{
+//				nearest = c;
+//				lowestDistance = dist; 
+//			}
+//		}
+//		
+//		//System.out.println(this + " has a nearest cell of..." + nearest);
+//
+//		
+//		return nearest;
+//	}
+	
 	public Cell getCellClosestTo(Cell target)
 	{
 		ArrayList<Cell> moveCells = getMoveCells();
@@ -294,20 +323,20 @@ public abstract class ComputerUnit extends Unit
 		{
 			//System.out.println(this + " is looking at this cell  " + current);
 			
-//			Cell next = current.getLowestWeightNeighbor();
+			Cell next = current.getLowestWeightNeighbor();
 		
 			if(Utility.getDistance(getCell(), current) == 1)
 			{	
 				return current;
 			}
-			//else if(next == null)
+			else if(next == null)
 			{
 				return current;
 			}
-			//else
-			//{
-			//	current = next;
-			//}
+			else
+			{
+				current = next;
+			}
 		}
 
 		return null;
@@ -366,6 +395,10 @@ public abstract class ComputerUnit extends Unit
 		}
 		movement();
 		
+			
+		
+//		Map.clearMoveTargets();
+//		Map.applyMoveTargets(this);
 
 	}
 	
@@ -522,7 +555,26 @@ public abstract class ComputerUnit extends Unit
 		}
 		
 		useAbility(a, lowestUnit);
-	}	
+	}
+	
+//	public void basicAttackAdjacentEnemy()			// deprecated?
+//	{
+//		Unit lowestUnit = null;
+//		int lowestDefense = Integer.MAX_VALUE;
+//		
+//		for(Unit u : getAdjacentEnemies())
+//		{
+//			if(u.getCurHealth() + u.getArmor() < lowestDefense)
+//			{
+//				lowestUnit = u;
+//				lowestDefense = u.getCurHealth() + u.getArmor();
+//			}
+//		}
+//		
+//		useAbility(1, lowestUnit);
+//	
+//	}
+	
 	
 	public void useAbility(ActivatedAbility a)
 	{

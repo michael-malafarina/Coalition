@@ -21,12 +21,11 @@ public class CampaignManager
 	
 	public static int getCombatDifficulty()
 	{
-//		int difficulty = (stage + 3) * 3;
-//
-//
-//		return difficulty;
-		
-		
-		return 0;
+		int difficulty = (stage + 3) * 3;
+//		System.out.println("***Campaign Manager***");
+//		System.out.println("Stage: " + stage);
+//		System.out.println("Difficulty: " + difficulty);
+
+		return difficulty;
 	}
 }

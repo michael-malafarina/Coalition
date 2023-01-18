@@ -1054,7 +1054,7 @@ public ArrayList<Discipline> getDisciplines()	{	return disciplines;}
 
 		//int dist = c.getWeight();
 
-		//if(hasEnoughMovementToEnter(c))
+		if(hasEnoughMovementToEnter(c))
 		{
 			if(this instanceof PlayerUnit)
 			{
@@ -1070,6 +1070,13 @@ public ArrayList<Discipline> getDisciplines()	{	return disciplines;}
 			setCell(c);
 		}
 
+
+	}
+
+
+	public boolean hasEnoughMovementToEnter(Cell c)
+	{
+		return c.getWeight() <= getCurMove() || (c.getMoveCost() > 1 && c.getWeight() - getCurMove() == 1);
 
 	}
 	

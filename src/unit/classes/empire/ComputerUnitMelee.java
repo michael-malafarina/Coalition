@@ -6,20 +6,20 @@ public class ComputerUnitMelee extends ComputerUnit
 {
 	public void movement()
 	{
-	//	moveTowardNearestEnemy();	
+		moveTowardNearestEnemy();	
 	
 	}
 	
 	public void action()
 	{
-//		if(hasEnemyInRange(getBasicAttack()))
-//		{
-//			basicAttackEnemyInRange();
-//		}
-//		else
-//		{
-//			endAction();
-//		}
+		if(hasEnemyInRange(getBasicAttack()))
+		{
+			basicAttackEnemyInRange();
+		}
+		else
+		{
+			endAction();
+		}
 
 	}
 

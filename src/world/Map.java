@@ -15,6 +15,7 @@ import core.Utility;
 import states.combat.CombatManager;
 import states.combat.ControlState;
 import ui.Camera;
+import ui.Images;
 import ui.MenuColor;
 import ui.Mouse;
 import unit.Unit;
@@ -38,9 +39,6 @@ public class Map
 	
 	private static Cell startLocation;	
 
-	
-	private static PathingGrid grid;
-	
 	public static void init()
 	{
 		generator = new CombatMapBuilderArchive();
@@ -159,8 +157,6 @@ public class Map
 
 		renderPlannedPath();
 
-		grid.render();
-		
 	}
 
 
@@ -172,23 +168,87 @@ public class Map
 		}
 	}
 
+	public static void calculateDistances(Unit u, boolean movement)
+	{
+		if(u == null || !u.isAlive())
+		{
+			return;
+		}
+
+		calculateDistances(u.getCell(), movement);
+	}
+	
+	public static void calculateDistances(Cell cell, boolean movement)
+	{
+
+		if(cell == null)
+		{
+			return;
+		}
+		
+		resetWeights(movement);
+
+
+		cell.setOrigin(movement);
+
+		for(Cell c : cells)
+		{
+			c.lockUnreachable();
+
+		}
+	}
+	
+//	public static int getDistance(Cell a, Cell b, boolean isMovement)
+//	{
+//		resetWeights(isMovement);
+//		
+////		ArrayList<Cell> cells = new ArrayList<Cell>();
+////		
+////		cells.add(e)
+////		
+////		if(a == null || b == null)
+////		{
+////			return 0;
+////		}
+//		
+//		a.setOrigin(isMovement);
+//		
+//
+//		for(Cell c : cells)
+//		{
+//			c.lockUnreachable();
+//
+//		}
+//		
+//		return b.getWeight();
+//
+//	}
+
 	public static void applyMoveTargets(Unit unit)
 	{
 		if(unit == null)
 		{
 			return;
 		}
-		
-		grid = new PathingGrid(getCells(), unit.getCell());
-		grid.calculateDistances();
-		
+		//if(Mouse.inBounds())
+		//{
+		calculateDistances(unit, true);
+		//}
+
+
 		for(Cell c : getCells())
 		{
-			if(grid.canReachCell(c, unit.getCurMove()))
+			// If you have enough movement OR if it is difficult terrain and you're off by one
+			if(unit.hasEnoughMovementToEnter(c))
 			{
-				c.enableMoveTarget(unit.isActive());
+				//if(c.canEnter())
+				if(c.getTerrain().canEnter() && !c.hasObstacle() && c.hasNoAdversary())
+				{
+					c.enableMoveTarget(unit.isActive());
+				}
 			}
 		}
+
 
 	}
 
@@ -202,71 +262,96 @@ public class Map
 
 	public static void applyAbilityTargets(Unit unit)
 	{
-//		clearAbilityTargets();
-//		calculateDistances(unit, false);
-//
-//		ArrayList<Cell> abilityCells = new ArrayList<Cell>();
-//
-//		ActivatedAbility a = CombatManager.getActiveAbility();
-//
-//		for(Cell c : getCells())
-//		{
-//
-//
-//
-//			//int d = Utility.getDistance(c.getX(), c.getY(), unit.getX(), unit.getY());  save this for obstacles you can fire over later
-//
-//			//	System.out.println(a + " " + a.canTargetSelf());
-//
-//			//		if(c.containsSelf() && a.canTargetSelf())		
-//
-//			if((c.getWeight() <= a.getRange() && c.getWeight() > 0) || 
-//					(c.hasSelf() && a.canTargetSelf()))		
-//			{	
-//				//System.out.println("hi");
-//				c.enableAbilityTarget();
-//				abilityCells.add(c);
-//			}
-//		}
-//
-//		for(Cell c : abilityCells)
-//		{
-//
-//
-//			if(abilityLineBlockedByObstacle(a.getOwner().getCell(), c))
-//			{
-//				c.disableAbilityTarget();
-//
-//			}
-//		}
+		clearAbilityTargets();
+		calculateDistances(unit, false);
+
+		ArrayList<Cell> abilityCells = new ArrayList<Cell>();
+
+		ActivatedAbility a = CombatManager.getActiveAbility();
+
+		for(Cell c : getCells())
+		{
+
+
+
+			//int d = Utility.getDistance(c.getX(), c.getY(), unit.getX(), unit.getY());  save this for obstacles you can fire over later
+
+			//	System.out.println(a + " " + a.canTargetSelf());
+
+			//		if(c.containsSelf() && a.canTargetSelf())		
+
+			if((c.getWeight() <= a.getRange() && c.getWeight() > 0) || 
+					(c.hasSelf() && a.canTargetSelf()))		
+			{	
+				//System.out.println("hi");
+				c.enableAbilityTarget();
+				abilityCells.add(c);
+			}
+		}
+
+		for(Cell c : abilityCells)
+		{
+
+
+			if(abilityLineBlockedByObstacle(a.getOwner().getCell(), c))
+			{
+				c.disableAbilityTarget();
+
+			}
+		}
 	}
 
-	
+	public static void resetWeights(boolean movement)
+	{
+		for(Cell c : cells)
+		{
+			c.resetWeight();
+		}
+	}
+
+	//	public static ArrayList<Cell> cellsInMovementRange(Unit unit)
+	//	{
+	//		ArrayList<Cell> moveCells = new ArrayList<Cell>();
+	//		
+	//		for(int y = 0; y < rows; y++)
+	//		{
+	//			for(int x = 0; x < cols; x++)
+	//			{
+	//				if(Utility.getDistance(x, y, unit.getX(), unit.getY()) < unit.getCurMove())
+	//				{
+	//					moveCells.add(cells[x][y]);
+	//				}
+	//			}
+	//		}
+	//		
+	//		return moveCells;
+	//	}
+
 
 	private static void renderPlannedPath()
 	{
-//		if(CombatManager.getControlState() != ControlState.MOVEMENT)
-//		{
-//			return;
-//		}
-//
-//		Cell current = Mouse.getCell();
-//
-//		while(current != null && current.getWeight() != 0)
-//		{
-//			if(current.getWeight() <= CombatManager.getActiveUnit().getCurMove())
-//			{
-//
-//				Images.cellDot.draw(current.getXPixel(), current.getYPixel(), Main.getGameScale());
-//			}
-//			else
-//			{
-//				Images.cellDot.draw(current.getXPixel(), current.getYPixel(), Main.getGameScale(), new Color(150, 150, 150, 150));
-//			}
-//			current = current.getLowestWeightNeighbor();
-//			//System.out.println(current.getWeight());
-//
-//		}
+		if(CombatManager.getControlState() != ControlState.MOVEMENT)
+		{
+			return;
+		}
+
+		Cell current = Mouse.getCell();
+
+		while(current != null &&  CombatManager.getActiveUnit() != null && current.getWeight() != 0)
+		{
+			if(current.getWeight() <= CombatManager.getActiveUnit().getCurMove())
+			{
+
+				Images.cellDot.draw(current.getXPixel(), current.getYPixel(), Main.getGameScale());
+			}
+			else
+			{
+				Images.cellDot.draw(current.getXPixel(), current.getYPixel(), Main.getGameScale(), new Color(150, 150, 150, 150));
+			}
+			current = current.getLowestWeightNeighbor();
+			//System.out.println(current.getWeight());
+
+		}
 	}
 
 	public static void renderPlannedAbility(Graphics g)

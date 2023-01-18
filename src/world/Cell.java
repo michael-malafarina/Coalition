@@ -38,13 +38,16 @@ public class Cell
 	
 	// Pathfinding stuff
 	
-
+	private int weight;
+	private boolean needToUpdateNeighbors;
 	
 	public Cell(int x, int y)
 	{
 		this.x = x;
 		this.y = y;
-	
+		
+		weight = -1;
+		needToUpdateNeighbors = false;
 	}
 	
 	public void setPosition(int x, int y)
@@ -104,7 +107,10 @@ public class Cell
 	public Unit getUnit()				{	return unit;		}
 	public Unit getPassingUnit()		{	return passingUnit;		}
 	public Obstacle getObstacle()		{	return obstacle;		}
-
+	public boolean isUnreachable()		{	return weight >= 998;		}
+	
+	public int getWeight()						{		return weight;					}
+	public boolean needToUpdateNeighbors()		{		return needToUpdateNeighbors;	}
 
 	/****************************** MUTATORS *******************************/
 	
@@ -143,6 +149,12 @@ public class Cell
 			g.drawRect(getXPixel(), getYPixel(), Main.getCellSize(), Main.getCellSize());
 		}
 		
+		if(Settings.debugMode)
+		{
+			g.setColor(new Color(255, 255, 255, 255));
+//			g.drawString(getX() + " " + getY(), getXPixel()+12, getYPixel()+28);
+			g.drawString(""+getWeight(), getXPixel()+2, getYPixel()+28);
+		}
 	}
 	
 	public void renderEntities(Graphics g)
@@ -361,7 +373,16 @@ public class Cell
 	
 
 	
-
+	public void updateNeighbors(boolean movement)
+	{
+		needToUpdateNeighbors = false;			// This needs to happen before calls to neighbors
+		
+		if(hasWestCell() )		{	getWestCell().setWeight(this, movement);		}
+		if(hasEastCell())		{	getEastCell().setWeight(this, movement);		}
+		if(hasNorthCell())		{	getNorthCell().setWeight(this, movement);		}
+		if(hasSouthCell())		{	getSouthCell().setWeight(this, movement);		}
+	
+	}
 	
 //	public void updateNeighbors(boolean movement)
 //	{
@@ -374,15 +395,59 @@ public class Cell
 //	
 //	}
 	
+	public void setOrigin(boolean movement)
+	{
+		weight = 0;
+		updateNeighbors(movement);
+	}
+	
+	
+	
+	public void setWeight(Cell parent, boolean movementMode)
+	{
+		int cost = 1;
+		
+		if(movementMode)
+		{
+			cost = getTerrain().getMoveCost();
+		}
+			
+		if(weight == -1 || weight > parent.getWeight() + cost)
+		{
+			if(movementMode && hasAdversary())	
+			{
+				weight = 999;
+			}
+			else if(!getTerrain().canEnter() || hasObstacle() || parent.getWeight() == 999 || weight == 999)
+			{
+				weight = 999;
+			}
+			else
+			{
+//				System.out.println(weight + " " + parent.getWeight());
+				weight = parent.getWeight() + cost;
+				needToUpdateNeighbors = true;
+			}		
+		}
 
+		if(needToUpdateNeighbors())
+		{
+			updateNeighbors(movementMode);
+		}
+	}
 	
+	public void resetWeight()
+	{		
+		weight = -1;	
+	}
 	
-	
-	
-	
-
-	
-
+	public void lockUnreachable()
+	{
+		if(weight == -1)
+		{
+			weight = 999;
+		}
+	}
 	
 	public ArrayList<Cell> getNeighbors()
 	{
@@ -408,7 +473,75 @@ public class Cell
 		return shuffled;
 	}
 	
-	
+	public Cell getLowestWeightNeighbor()
+	{
+		int lowVal = 999;
+		Cell lowCell = null;
+		
+		for(Cell c : getNeighbors())
+		{
+			if(c != null)
+			{
+			//	System.out.println("its not null");
+
+				
+				if(c.getWeight() < lowVal)
+				{
+				//	System.out.println("weight is smol");
+
+					
+					if(c.getTerrain().canEnter())
+					{
+					//	System.out.println("terrain checks out");
+
+						
+						if(!c.hasObstacle())
+						{
+					//		System.out.println("no obstacle here");
+
+							
+					
+							
+//							
+//							if(getActiveUnit() instanceof PlayerUnit && hasNoAdversary())
+//							{
+////					//			System.out.println("setting a new low cell");
+////
+//								lowVal = c.getWeight();
+//								lowCell = c;
+//							}
+//							else
+								
+							if(hasNoAdversary())
+							{
+								lowVal = c.getWeight();
+								lowCell = c;
+							}
+							
+//							
+//							if(getActiveUnit() instanceof ComputerUnit && hasNoFriendly())
+//							{
+//								lowVal = c.getWeight();
+//								lowCell = c;
+//							}
+						}
+					}
+				}
+			}
+		}
+		
+		//System.out.println(lowCell);
+		if(lowCell == null || lowCell.getWeight() >= getWeight())
+		{
+			return null;
+		}
+		else
+		{	
+			return lowCell;
+		}
+		
+		
+	}
 	
 	public Cell getRandomNeighbor()
 	{
